@@ -1,3 +1,5 @@
+**English** | [中文](README.zh-CN.md)
+
 # chatlog-to-diary
 
 Turn your chat logs into first-person diary entries, automatically.
