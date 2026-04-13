@@ -1,0 +1,52 @@
+# chatlog-to-diary configuration
+# Copy this file to config.yaml and edit to match your setup.
+# config.yaml is gitignored — your personal settings stay local.
+
+# ── Source ────────────────────────────────────────────────────────────────────
+# Path to the directory containing your chat export files.
+source_dir: source/
+
+# File format: txt, pdf, or auto (detect from extension).
+source_format: auto
+
+# ── Output ────────────────────────────────────────────────────────────────────
+# Directory where generated diary files will be saved.
+output_dir: output/
+
+# ── Participants ──────────────────────────────────────────────────────────────
+# How the user appears in chat logs (comma-separated if multiple names).
+# Examples: "我", "Alice", "Me"
+user_labels: "Alice"
+
+# Display name for the other participant (used in diary text).
+other_name: "Sam"
+
+# ── Language & Style ──────────────────────────────────────────────────────────
+# Diary language: zh (Chinese), en (English), ja (Japanese), etc.
+diary_language: zh
+
+# Writing style: concise (event-driven, short) or narrative (more detailed).
+writing_style: concise
+
+# Keep the other person's foreign-language quotes in original language?
+# Set to true and list which languages to preserve.
+keep_foreign_quotes: true
+foreign_languages:
+  - en
+  - ja
+
+# ── Example ───────────────────────────────────────────────────────────────────
+# Given this chat log:
+#
+#   [2025-03-15 09:30:00] Alice：今天搬到新公寓了，叫了个搬家公司
+#   [2025-03-15 09:31:00] Sam：怎么样新地方
+#   [2025-03-15 09:32:00] Alice：比想象中大！阳台能看到河
+#   [2025-03-15 09:33:00] Sam：That's amazing, jealous
+#   [2025-03-15 18:00:00] Alice：刚组装完书架，腰快断了
+#   [2025-03-15 18:01:00] Sam：辛苦了！来暖房的时候我带酒
+#
+# The tool generates:
+#
+#   今天搬进了新公寓，叫了搬家公司。比想象中大，阳台能看到河。
+#   Sam说That's amazing, jealous。傍晚组装完书架，腰快断了。
+#   Sam说来暖房的时候带酒。
