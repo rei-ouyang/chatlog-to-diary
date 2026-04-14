@@ -46,7 +46,7 @@
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/yourname/chatlog-to-diary.git
+git clone https://github.com/rei-ouyang/chatlog-to-diary.git
 cd chatlog-to-diary
 
 # 2. 打开 Claude Code
@@ -95,7 +95,10 @@ claude
 chatlog-to-diary/
 ├── .claude/
 │   └── settings.json      # Claude Code 权限配置
-├── CLAUDE.md               # Skill 逻辑（Claude 如何生成日记）
+├── .claude/skills/         # Claude Code skill 定义
+│   └── chatlog-to-diary/
+│       └── SKILL.md
+├── CLAUDE.md               # 项目概述
 ├── config.example.yaml     # 配置模板（虚构示例数据）
 ├── config.yaml             # 你的实际配置（gitignored）
 ├── scripts/

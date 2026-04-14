@@ -46,7 +46,7 @@ Days with very few messages produce a single line:
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/yourname/chatlog-to-diary.git
+git clone https://github.com/rei-ouyang/chatlog-to-diary.git
 cd chatlog-to-diary
 
 # 2. Open in Claude Code
@@ -95,7 +95,10 @@ Other formats can work too — the parser tries multiple patterns and picks the 
 chatlog-to-diary/
 ├── .claude/
 │   └── settings.json      # Claude Code permissions
-├── CLAUDE.md               # Skill logic (how Claude generates diaries)
+├── .claude/skills/         # Claude Code skill definition
+│   └── chatlog-to-diary/
+│       └── SKILL.md
+├── CLAUDE.md               # Project overview
 ├── config.example.yaml     # Example config with fictional data
 ├── config.yaml             # Your config (gitignored)
 ├── scripts/
