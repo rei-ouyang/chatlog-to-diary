@@ -36,13 +36,9 @@ Days with very few messages produce a single line:
 今天记录极少。
 ```
 
-## Requirements
+## Usage
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (this tool runs as a Claude Code skill)
-- Python 3.9+
-- `PyMuPDF` (only if you have PDF chat exports): `pip install PyMuPDF`
-
-## Quick Start
+### Option 1: Claude Code Skill (recommended)
 
 ```bash
 # 1. Clone the repo
@@ -56,16 +52,66 @@ claude
 /chatlog-to-diary
 ```
 
-On first run, the skill asks a few questions interactively:
+On first run, the skill asks a few questions interactively: where your chat files are, the format, diary language, your name(s) in the chat, the other person's name, and style preference. Answers are saved to `config.yaml` (gitignored). After that, `/chatlog-to-diary` processes everything automatically.
 
-- Where are your chat files?
-- What format (txt/pdf)?
-- What language for the diary?
-- Your name as it appears in the chat
-- The other person's name
-- Style preference (concise vs. narrative)
+### Option 2: Standalone script (no Claude Code required)
 
-Answers are saved to `config.yaml` (gitignored). After that, just run `/chatlog-to-diary` and it processes everything automatically.
+```bash
+# Install dependencies
+pip install pyyaml anthropic   # or: pip install pyyaml openai
+
+# Set your API key
+export ANTHROPIC_API_KEY=sk-ant-...
+# or
+export OPENAI_API_KEY=sk-...
+
+# Step 1: split chat log by date
+python3 scripts/split_by_date.py source/ --output-dir /tmp/chatlog-split
+
+# Step 2: generate diary entries (first run starts interactive setup)
+python3 scripts/generate_diary.py --split-dir /tmp/chatlog-split
+
+# If config.yaml already exists, skip setup entirely
+python3 scripts/generate_diary.py --split-dir /tmp/chatlog-split --skip-setup
+```
+
+Optional environment overrides:
+```bash
+export DIARY_MODEL=claude-3-5-sonnet-20241022   # override model
+export OPENAI_BASE_URL=https://your-provider/v1  # OpenAI-compatible providers
+```
+
+## Requirements
+
+- Python 3.9+
+- `PyMuPDF` (PDF exports only): `pip install PyMuPDF`
+- Option 1 additionally requires: [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+- Option 2 additionally requires: `pip install pyyaml anthropic` (or `openai`)
+
+## Group Chat Support
+
+Group chats are supported, but work differently from private chats.
+
+In `config.yaml`:
+```yaml
+chat_type: group
+group_name: "朋友群"   # how the group is referred to in the diary
+```
+
+In group mode, diary entries focus only on **your** messages and the concrete outcomes that involved you. Other members' conversations are ignored — this is by design. Group chats are noisy, and what others say there usually isn't a reliable snapshot of their lives.
+
+**Group chat example input:**
+```
+[2025-04-01 20:00:00] 小明：周末有人打球吗
+[2025-04-01 20:01:00] Alice：我可以！周六下午
+[2025-04-01 20:02:00] 小红：我也去
+[2025-04-01 20:03:00] Alice：太好了，那约球场吧
+```
+
+**Group chat diary output (only user's contribution):**
+```
+在朋友群里约好了周六下午打球，顺便约了球场。
+```
 
 ## Supported Chat Formats
 
@@ -102,7 +148,8 @@ chatlog-to-diary/
 ├── config.example.yaml     # Example config with fictional data
 ├── config.yaml             # Your config (gitignored)
 ├── scripts/
-│   └── split_by_date.py    # Chat log parser & date splitter
+│   ├── split_by_date.py    # Chat log parser & date splitter
+│   └── generate_diary.py   # Standalone diary generator (no Claude Code needed)
 ├── source/                 # Your chat exports (gitignored)
 ├── output/                 # Generated diaries (gitignored)
 ├── .gitignore
@@ -111,7 +158,7 @@ chatlog-to-diary/
 
 ## Configuration
 
-Copy `config.example.yaml` to `config.yaml` and edit, or let the skill guide you through setup on first run.
+Copy `config.example.yaml` to `config.yaml` and edit, or let the skill / script guide you through setup on first run.
 
 Key options:
 
@@ -121,11 +168,19 @@ Key options:
 | `source_format` | `txt`, `pdf`, or `auto` | `auto` |
 | `output_dir` | Where diary files are saved | `output/` |
 | `diary_language` | `zh`, `en`, `ja`, etc. | `zh` |
-| `user_labels` | Your name(s) in the chat log | — |
-| `other_name` | Other person's display name | — |
+| `chat_type` | `private` (1-on-1) or `group` | `private` |
+| `user_labels` | Your name(s) in the chat log, comma-separated | — |
+| `other_name` | Other person's display name (private chat) | — |
+| `group_name` | Group label used in diary text (group chat) | `群` |
 | `writing_style` | `concise` or `narrative` | `concise` |
 | `keep_foreign_quotes` | Preserve foreign-language quotes | `true` |
 | `foreign_languages` | Which languages to preserve | `[en, ja]` |
+
+**About `user_labels`**: If you're "Alice" on WeChat and "アリス" on LINE, list both:
+```yaml
+user_labels: "Alice, アリス"
+```
+The tool will recognise either name as you.
 
 ## Privacy
 

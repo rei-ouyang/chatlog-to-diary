@@ -36,13 +36,9 @@
 今天记录极少。
 ```
 
-## 环境要求
+## 使用方式
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code)（本工具作为 Claude Code skill 运行）
-- Python 3.9+
-- `PyMuPDF`（仅 PDF 格式需要）：`pip install PyMuPDF`
-
-## 快速开始
+### 方式一：Claude Code Skill（推荐）
 
 ```bash
 # 1. 克隆仓库
@@ -56,16 +52,68 @@ claude
 /chatlog-to-diary
 ```
 
-首次运行时，skill 会交互式地问你几个问题：
+首次运行时，skill 会交互式地问你几个问题：聊天记录位置、格式、日记语言、你的名字、对方名字、写作风格等。回答会保存到 `config.yaml`（已 gitignore）。之后每次运行 `/chatlog-to-diary` 直接自动处理，不再重复提问。
 
-- 聊天记录文件在哪里？
-- 什么格式（txt/pdf）？
-- 日记用什么语言？
-- 你在聊天记录中的名字
-- 对方的名字或昵称
-- 写作风格偏好（简洁事件驱动 vs 详细叙事）
+### 方式二：独立脚本（无需 Claude Code）
 
-回答会保存到 `config.yaml`（已 gitignore）。之后每次运行 `/chatlog-to-diary` 直接自动处理，不再重复提问。
+不使用 Claude Code？可以直接调用 Anthropic 或 OpenAI API：
+
+```bash
+# 安装依赖
+pip install pyyaml anthropic   # 或 pip install pyyaml openai
+
+# 配置 API Key
+export ANTHROPIC_API_KEY=sk-ant-...
+# 或
+export OPENAI_API_KEY=sk-...
+
+# 第一步：按日期切分聊天记录
+python3 scripts/split_by_date.py source/ --output-dir /tmp/chatlog-split
+
+# 第二步：生成日记（首次运行会交互式配置）
+python3 scripts/generate_diary.py --split-dir /tmp/chatlog-split
+
+# 如果已有 config.yaml，跳过配置向导
+python3 scripts/generate_diary.py --split-dir /tmp/chatlog-split --skip-setup
+```
+
+支持自定义模型：
+```bash
+export DIARY_MODEL=claude-3-5-sonnet-20241022   # 指定模型
+export OPENAI_BASE_URL=https://your-provider/v1  # 兼容 OpenAI 协议的第三方服务
+```
+
+## 环境要求
+
+- Python 3.9+
+- `PyMuPDF`（仅 PDF 格式需要）：`pip install PyMuPDF`
+- 方式一额外需要：[Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+- 方式二额外需要：`pip install pyyaml anthropic`（或 `openai`）
+
+## 群聊支持
+
+工具支持群聊记录，但效果和私聊有所不同。
+
+在 `config.yaml` 中设置：
+```yaml
+chat_type: group
+group_name: "朋友群"   # 群组在日记里的称呼
+```
+
+群聊模式下，日记只记录**你自己**说了什么、约了什么——群里其他人的话题和生活状态不会被纳入。这是刻意的设计：群聊太嘈杂，其他人在群里说的话往往不足以反映他们实际的生活状态。
+
+**群聊示例输入：**
+```
+[2025-04-01 20:00:00] 小明：周末有人打球吗
+[2025-04-01 20:01:00] Alice：我可以！周六下午
+[2025-04-01 20:02:00] 小红：我也去
+[2025-04-01 20:03:00] Alice：太好了，那约球场吧
+```
+
+**群聊示例输出（只聚焦用户）：**
+```
+在朋友群里约好了周六下午打球，顺便约了球场。
+```
 
 ## 支持的聊天格式
 
@@ -102,7 +150,8 @@ chatlog-to-diary/
 ├── config.example.yaml     # 配置模板（虚构示例数据）
 ├── config.yaml             # 你的实际配置（gitignored）
 ├── scripts/
-│   └── split_by_date.py    # 聊天记录解析与按日期切分
+│   ├── split_by_date.py    # 聊天记录解析与按日期切分
+│   └── generate_diary.py   # 独立日记生成脚本（无需 Claude Code）
 ├── source/                 # 你的聊天记录文件（gitignored）
 ├── output/                 # 生成的日记（gitignored）
 ├── .gitignore
@@ -111,7 +160,7 @@ chatlog-to-diary/
 
 ## 配置说明
 
-复制 `config.example.yaml` 为 `config.yaml` 手动编辑，或者在首次运行时让 skill 引导你完成配置。
+复制 `config.example.yaml` 为 `config.yaml` 手动编辑，或者在首次运行时让 skill / 脚本引导你完成配置。
 
 主要选项：
 
@@ -121,11 +170,19 @@ chatlog-to-diary/
 | `source_format` | `txt`、`pdf` 或 `auto` | `auto` |
 | `output_dir` | 日记输出目录 | `output/` |
 | `diary_language` | `zh`、`en`、`ja` 等 | `zh` |
-| `user_labels` | 你在聊天记录中的名字 | — |
-| `other_name` | 对方的显示名称 | — |
+| `chat_type` | `private`（私聊）或 `group`（群聊） | `private` |
+| `user_labels` | 你在聊天记录中的名字，逗号分隔（可列多个别名）| — |
+| `other_name` | 对方的显示名称（私聊时使用） | — |
+| `group_name` | 群组在日记里的称呼（群聊时使用） | `群` |
 | `writing_style` | `concise`（简洁）或 `narrative`（叙事） | `concise` |
 | `keep_foreign_quotes` | 是否保留对方的外语原文 | `true` |
 | `foreign_languages` | 保留哪些语言的原文 | `[en, ja]` |
+
+**关于 `user_labels`**：如果你在微信叫"Alice"，在 LINE 叫"アリス"，可以写成：
+```yaml
+user_labels: "Alice, アリス"
+```
+工具会把两个名字都识别为你。
 
 ## 隐私保护
 

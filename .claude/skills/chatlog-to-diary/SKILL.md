@@ -13,7 +13,7 @@ Convert chat logs into first-person diary entries.
 Check whether `config.yaml` exists in the project root.
 
 - If **no** `config.yaml` → run First-Run Setup
-- If `config.yaml` exists → run Daily Generation
+- If `config.yaml` exists → run Daily Generation (skip setup entirely)
 
 ## First-Run Setup
 
@@ -23,10 +23,13 @@ Ask the user the following questions **one at a time** (have a conversation, don
 2. **Source format**: "What format are they in? (txt / pdf / auto)"
 3. **Output directory**: "Where should I save the diary files? (default: `output/`)"
 4. **Diary language**: "What language should the diary be in? (zh / en / ja / other)"
-5. **User labels**: "How does your name appear in the chat logs? If you have multiple names or aliases, separate them with commas."
-6. **Other participant name**: "What's the other person's name or nickname? (used when referring to them in the diary)"
-7. **Foreign quotes**: "Should I keep the other person's foreign-language quotes in their original language? (yes/no)" — if yes, ask "Which languages? (e.g., en, ja)"
-8. **Writing style**: "Do you prefer concise event-driven entries or more detailed narrative style? (concise / narrative)"
+5. **Chat type**: "Is this a private chat (1-on-1) or a group chat? (private / group)"
+6. **User labels**: "How does your name appear in the chat logs? You may have different names across apps — list all aliases separated by commas. (e.g. 我, Alice, アリス)"
+7. **Other participant / group name**:
+   - If private: "What's the other person's name or nickname? (used when referring to them in the diary)"
+   - If group: "What should I call this group in the diary? (e.g. 朋友群, 旅行小队)"
+8. **Foreign quotes**: "Should I keep the other person's foreign-language quotes in their original language? (yes/no)" — if yes, ask "Which languages? (e.g., en, ja)"
+9. **Writing style**: "Do you prefer concise event-driven entries or more detailed narrative style? (concise / narrative)"
 
 After collecting all answers, write `config.yaml` and create directories:
 ```bash
@@ -40,16 +43,18 @@ Confirm setup is complete.
 **Step 1 — Split chat logs by date**
 
 ```bash
-python3 scripts/split_by_date.py <source_dir> --format <source_format> --output-dir /tmp/chatlog-split
+python3 scripts/split_by_date.py <source_dir> --format <source_format> --output-dir /tmp/chatlog-split --warn-group
 ```
 
 Produces one `.txt` file per date in `/tmp/chatlog-split/`, named `YYYY-MM-DD.txt`.
+
+If `--warn-group` prints a warning about multiple speakers, remind the user to set `chat_type: group` in `config.yaml` if this is indeed a group chat.
 
 **Step 2 — Generate diary for each date**
 
 Read config values from `config.yaml`. For each date file, read the chat content and generate a diary entry following these rules:
 
-### Diary Generation Rules
+### Diary Generation Rules (private chat)
 
 - Write in first person (我 / I / 私)
 - The diary subject is always the user
@@ -67,6 +72,21 @@ Read config values from `config.yaml`. For each date file, read the chat content
   - Normal day → a short paragraph
   - Dense day → a full paragraph or two
 - Output the diary entry only — no labels, no headers, no explanations
+
+### Diary Generation Rules (group chat)
+
+Group chats are inherently noisy — focus only on what the **user** said or arranged:
+
+- Use the group label (from config `group_name`) when referring to the group, e.g., "在朋友群里约好了周六打球。"
+- Only include the user's own messages and the concrete outcomes that involved the user
+- Ignore side conversations that don't involve the user
+- Do not summarise what other group members are doing with their lives — group chat is not a reliable source for that
+- Keep entries short; most group chat days will be 1–3 sentences
+- If the user said nothing meaningful in the group that day: "今天记录极少。"
+
+### User Labels Across Multiple Apps
+
+The user may appear under different names in different chat files (e.g. "Alice" in WeChat, "アリス" in LINE). The `user_labels` config field is a comma-separated list of all aliases. When identifying the user's messages, match against **any** of these labels.
 
 ### Writing Style Variations
 
@@ -94,7 +114,8 @@ Tell the user:
 Before outputting each diary entry, verify:
 - [ ] Written in first person from the user's perspective
 - [ ] No dialogue transcript format (no "A说...B说..." back and forth)
-- [ ] Other participant referred to by name, not pronouns
+- [ ] Private chat: other participant referred to by name, not pronouns
+- [ ] Group chat: only user's own actions and outcomes included
 - [ ] Length matches information density
 - [ ] No invented content beyond what the chat supports
 - [ ] Foreign quotes preserved if configured
@@ -102,6 +123,8 @@ Before outputting each diary entry, verify:
 ## Style Examples
 
 All examples below use fictional people and events.
+
+### Private chat
 
 **Input (chat log):**
 ```
@@ -123,7 +146,24 @@ All examples below use fictional people and events.
 今天终于搬进了新公寓。叫了搬家公司来帮忙，到了才发现比想象中大不少，阳台居然能看到河，跟Sam分享的时候他说That's amazing, jealous。傍晚自己组装书架，搞了很久，腰快断了。Sam说来暖房的时候带酒过来。
 ```
 
-**Minimal-information day:**
+### Group chat
+
+**Input (group chat log, user = Alice, group_name = 朋友群):**
+```
+[2025-04-01 20:00:00] 小明：周末有人打球吗
+[2025-04-01 20:01:00] Alice：我可以！周六下午
+[2025-04-01 20:02:00] 小红：我也去
+[2025-04-01 20:03:00] Alice：太好了，那约球场吧
+[2025-04-01 20:10:00] 小明：小红你最近工作怎么样
+[2025-04-01 20:11:00] 小红：还行，就是很忙
+```
+
+**Output (concise, Chinese — only user's contribution):**
+```
+在朋友群里约好了周六下午打球，顺便约了球场。
+```
+
+### Minimal-information day
 ```
 今天记录极少。
 ```

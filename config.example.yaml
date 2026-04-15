@@ -14,12 +14,24 @@ source_format: auto
 output_dir: output/
 
 # ── Participants ──────────────────────────────────────────────────────────────
-# How the user appears in chat logs (comma-separated if multiple names).
-# Examples: "我", "Alice", "Me"
-user_labels: "Alice"
+# How the user appears in chat logs (comma-separated if multiple names/aliases).
+# You may have different names across apps — list all of them here.
+# Examples: "我", "Alice", "Alice W", "アリス"
+user_labels: "Alice, Alice W"
 
-# Display name for the other participant (used in diary text).
+# Chat type: "private" (1-on-1) or "group"
+# Group chats focus only on what you said; private chats may include the other
+# person's notable remarks (e.g., plans they shared, reactions to your news).
+chat_type: private
+
+# Display name for the other participant in a private chat.
+# Ignored when chat_type is "group".
 other_name: "Sam"
+
+# For group chats: a label for the group used in the diary text.
+# Example: "朋友群", "工作群", "旅行小队"
+# Ignored when chat_type is "private".
+group_name: "朋友群"
 
 # ── Language & Style ──────────────────────────────────────────────────────────
 # Diary language: zh (Chinese), en (English), ja (Japanese), etc.
@@ -35,7 +47,7 @@ foreign_languages:
   - en
   - ja
 
-# ── Example ───────────────────────────────────────────────────────────────────
+# ── Example (private chat) ────────────────────────────────────────────────────
 # Given this chat log:
 #
 #   [2025-03-15 09:30:00] Alice：今天搬到新公寓了，叫了个搬家公司
@@ -47,6 +59,17 @@ foreign_languages:
 #
 # The tool generates:
 #
-#   今天搬进了新公寓，叫了搬家公司。比想象中大，阳台能看到河。
-#   Sam说That's amazing, jealous。傍晚组装完书架，腰快断了。
-#   Sam说来暖房的时候带酒。
+#   今天搬进了新公寓，叫了搬家公司。比想象中大，阳台能看到河。Sam说That's amazing, jealous。
+#   傍晚组装完书架，腰快断了。Sam说来暖房的时候带酒。
+
+# ── Example (group chat) ──────────────────────────────────────────────────────
+# Given this group chat log:
+#
+#   [2025-04-01 20:00:00] 小明：周末有人打球吗
+#   [2025-04-01 20:01:00] Alice：我可以！周六下午
+#   [2025-04-01 20:02:00] 小红：我也去
+#   [2025-04-01 20:03:00] Alice：太好了，那约球场吧
+#
+# The tool generates (group mode — only your contributions):
+#
+#   在朋友群里约好了周六下午打球。

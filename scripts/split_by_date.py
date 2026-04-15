@@ -81,6 +81,10 @@ def detect_and_parse(lines: list[str], source_name: str) -> dict[str, list[str]]
     """
     Auto-detect chat format and parse lines into {date_str: [lines...]}.
     Returns a dict mapping "YYYY-MM-DD" to the list of raw lines for that day.
+
+    Each line in the output is normalised to:
+        [YYYY-MM-DD HH:MM] Speaker：message
+    so downstream consumers always see a consistent format regardless of source.
     """
     # Try WeChat format first (most specific)
     result = _try_wechat(lines)
@@ -104,6 +108,20 @@ def detect_and_parse(lines: list[str], source_name: str) -> dict[str, list[str]]
 
     print(f"  Warning: could not detect format for {source_name}", file=sys.stderr)
     return {}
+
+
+def count_speakers(days: dict[str, list[str]]) -> int:
+    """
+    Heuristic: count unique speakers across all parsed lines.
+    Used to flag likely group chats (>2 speakers).
+    """
+    speakers: set[str] = set()
+    for day_lines in days.values():
+        for line in day_lines:
+            m = WECHAT_MSG_RE.match(line)
+            if m:
+                speakers.add(m.group(3).strip())
+    return len(speakers)
 
 
 def _try_wechat(lines: list[str]) -> dict[str, list[str]] | None:
@@ -292,6 +310,11 @@ def main() -> None:
         default=Path("/tmp/chatlog-split"),
         help="Directory to write per-date output files (default: /tmp/chatlog-split).",
     )
+    parser.add_argument(
+        "--warn-group",
+        action="store_true",
+        help="Print a warning if more than 2 unique speakers are detected (likely a group chat).",
+    )
     args = parser.parse_args()
 
     # Collect source files
@@ -313,6 +336,16 @@ def main() -> None:
 
         days = detect_and_parse(lines, path.name)
         print(f"{len(days)} day(s)")
+
+        if args.warn_group:
+            n = count_speakers(days)
+            if n > 2:
+                print(
+                    f"  Note: {n} unique speakers found in {path.name} — "
+                    "this looks like a group chat. "
+                    "Set chat_type: group in config.yaml for best results.",
+                    file=sys.stderr,
+                )
 
         for date_str, day_lines in days.items():
             all_days.setdefault(date_str, []).extend(day_lines)
