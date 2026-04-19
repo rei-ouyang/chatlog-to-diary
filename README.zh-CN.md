@@ -2,7 +2,12 @@
 
 # chatlog-to-diary
 
-把聊天记录自动转化为第一人称日记。
+![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=flat-square)
+![Claude Code](https://img.shields.io/badge/Claude%20Code-Skill-8A2BE2?style=flat-square)
+![Local First](https://img.shields.io/badge/Local-First-brightgreen?style=flat-square)
+
+> 把每天的聊天记录，写成一篇你那个晚上可能写下的日记。
 
 导出微信、LINE 或其他聊天工具的对话记录 → 本工具按日期切分，为每一天生成一篇第一人称日记，像是你自己在当晚写下的。
 

@@ -2,7 +2,12 @@
 
 # chatlog-to-diary
 
-Turn your chat logs into first-person diary entries, automatically.
+![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=flat-square)
+![Claude Code](https://img.shields.io/badge/Claude%20Code-Skill-8A2BE2?style=flat-square)
+![Local First](https://img.shields.io/badge/Local-First-brightgreen?style=flat-square)
+
+> Turn each day's chat logs into the diary you might have written that night.
 
 Export a conversation from WeChat, LINE, or any messenger → this tool splits it by date and writes a diary entry for each day, as if you wrote it yourself at the end of the night.
 
